@@ -1,0 +1,2 @@
+# EuroEval
+LLM evaluation framework. 
