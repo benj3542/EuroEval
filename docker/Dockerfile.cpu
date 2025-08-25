@@ -1,0 +1,40 @@
+FROM python:3.11-slim
+
+# Make APT more reliable
+ARG DEBIAN_FRONTEND=noninteractive
+RUN apt-get update -o Acquire::Retries=3 \
+ && apt-get install -y --no-install-recommends \
+      git curl ca-certificates \
+ && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /workspace
+
+# Cache locations
+ENV EUROEVAL_CACHE_DIR=/opt/euroeval_cache \
+    HF_HOME=/opt/hf_home \
+    HF_DATASETS_CACHE=/opt/hf_home/datasets \
+    HF_HUB_CACHE=/opt/hf_home/hub \
+    PYTHONUNBUFFERED=1 PIP_DISABLE_PIP_VERSION_CHECK=1
+
+RUN mkdir -p $EUROEVAL_CACHE_DIR $HF_DATASETS_CACHE $HF_HUB_CACHE /workspace/results \
+ && chmod -R 777 /opt /workspace/results
+
+# Copy project & install
+COPY pyproject.toml README.md /workspace/
+COPY src /workspace/src
+COPY scripts /workspace/scripts
+RUN pip install --no-cache-dir --upgrade pip \
+ && pip install --no-cache-dir .
+
+# Build-time selection of languages/tasks to pre-cache
+ARG EUROEVAL_LANGS="da,en"
+ARG EUROEVAL_TASKS="sentiment-classification"
+ENV EUROEVAL_LANGS=${EUROEVAL_LANGS}
+ENV EUROEVAL_TASKS=${EUROEVAL_TASKS}
+
+# Preload datasets
+RUN python -m euroeval_runner.preload_datasets
+
+# Entrypoint
+RUN chmod +x /workspace/scripts/entrypoint.sh
+ENTRYPOINT ["/workspace/scripts/entrypoint.sh"]
