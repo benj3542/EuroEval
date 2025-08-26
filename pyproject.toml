@@ -10,12 +10,15 @@ readme = "README.md"
 license = {text = "MIT"}
 requires-python = ">=3.10"
 dependencies = [
-  "euroeval[all]>=15.0.0",  # keep relatively fresh
+  "euroeval>=15.0.0",          # no [all]
+  "datasets>=2.19.0",          # HF datasets loader used by EuroEval
+  "huggingface-hub>=0.23.0",   # model/dataset hub utils
+  "evaluate>=0.4.0",           # metrics plumbing EuroEval uses
+  "pandas>=2.2.0",             # results formatting
   "rich>=13.7.1",
   "typer>=0.12.3",
   "prompt-toolkit>=3.0.47",
-  "python-dotenv>=1.0.1",
-  "termcolor2>=0.0.1" 
+  "python-dotenv>=1.0.1"
 ]
 
 [project.scripts]

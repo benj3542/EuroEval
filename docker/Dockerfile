@@ -33,8 +33,9 @@ COPY pyproject.toml README.md /workspace/
 COPY src /workspace/src
 COPY scripts /workspace/scripts
 
-# ---- Install project (pulls euroeval[all]) ----
-RUN pip install --upgrade pip && pip install .
+# ---- Install project (pulls euroeval) with no cache ----
+RUN pip install --no-cache-dir --upgrade pip && pip install --no-cache-dir .
+
 
 # ---- Build-time selection of languages/tasks to pre-cache ----
 ARG EUROEVAL_LANGS="da,en"

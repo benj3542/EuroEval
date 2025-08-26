@@ -3,46 +3,78 @@ name: Build and Publish Docker Image
 on:
   push:
     branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+    tags:     [ "v*" ]      # push a git tag like v0.1.0 to cut a release image
   workflow_dispatch:
+    inputs:
+      tag:
+        description: "Image tag to publish (defaults to latest)"
+        required: false
+        default: "latest"
+      preload_datasets:
+        description: "Preload datasets at build?"
+        required: false
+        default: "false"
+      langs:
+        description: "EUROEVAL_LANGS (comma-separated)"
+        required: false
+        default: "da"
+      tasks:
+        description: "EUROEVAL_TASKS (comma-separated)"
+        required: false
+        default: "sentiment-classification"
+      datasets:
+        description: "EUROEVAL_DATASETS (comma-separated) — overrides tasks if set"
+        required: false
+        default: ""
 
 jobs:
   build:
     runs-on: ubuntu-latest
-
     permissions:
       contents: read
-      packages: write
+      packages: write    # allow pushing to GHCR with GITHUB_TOKEN
 
     steps:
-      - name: Checkout repo
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Log in to GitHub Container Registry
+      - name: Set up QEMU (for multi-arch emulation, optional)
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Extract metadata (tags, labels)
+      - name: Compute image tags
         id: meta
         uses: docker/metadata-action@v5
         with:
           images: ghcr.io/${{ github.repository }}
+          tags: |
+            type=raw,value=${{ inputs.tag }},enable=${{ github.event_name == 'workflow_dispatch' }}
+            type=raw,value=latest,enable=${{ github.event_name != 'workflow_dispatch' }}
+            type=ref,event=tag
+            type=sha
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Build and push
+      - name: Build & push (multi-arch)
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: docker/Dockerfile
+          file: docker/Dockerfile            # your "regular" CUDA Dockerfile
+          platforms: linux/amd64             # add linux/arm64 if you want multi-arch
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
           build-args: |
-            EUROEVAL_LANGS=da,en
-            EUROEVAL_TASKS=sentiment-classification
+            PRELOAD_DATASETS=${{ inputs.preload_datasets || 'false' }}
+            EUROEVAL_LANGS=${{ inputs.langs }}
+            EUROEVAL_TASKS=${{ inputs.tasks }}
+            EUROEVAL_DATASETS=${{ inputs.datasets }}
