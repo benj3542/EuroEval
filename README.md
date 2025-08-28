@@ -182,7 +182,7 @@ docker run --rm --platform=linux/amd64 \
 
 This repo includes a workflow `.github/workflows/docker-build.yml` that:
 - builds the Docker image on every push to `main` (tags `:latest`and `:sha-...`)
-- pushes to **GitHub Container Registry (GHCR)** at ghcr.io/<owner>/<repo>
+- pushes to **GitHub Container Registry (GHCR)** at `ghcr.io/<owner>/<repo>`
 
 **Trigger manual build** (with inputs):
 - GutHub -> Actions -> *Build and Publish Docker Image* -> Run workflow 
