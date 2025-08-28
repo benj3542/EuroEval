@@ -36,11 +36,10 @@ Run the **EuroEval** LLM benchmark in a reproducible Docker image against any **
 - An **OpenAI-compatible API** to call (see [Choose an LLM endpoint](#choose-an-llm-endpoint)).  
 
 Repo layout (relevant bits):
-
-docker/Dockerfile
-scripts/entrypoint.sh
-src/euroeval_runner/...
-pyproject.toml
+- docker/Dockerfile
+- scripts/entrypoint.sh
+- src/euroeval_runner/...
+- pyproject.toml
 
 The contatiner exposes the CLI `euroeval-runner`. 
 
