@@ -1,28 +1,73 @@
-# euroeval-docker-runner
+# EuroEval Runner (Docker + OpenAI-compatible APIs)
 
-A tiny wrapper that builds a Docker image with [EuroEval] pre-installed and dataset
-artifacts pre-cached. At runtime it asks for an **OpenAI-compatible API base URL**
-(e.g., a Hugging Face router or self-hosted TGI Messages API), an **API key**, and a
-**model id**, then kicks off EuroEval.
+Run the **EuroEval** LLM benchmark in a reproducible Docker image against any **OpenAI-compatible** endpoint (OpenAI, OpenRouter, Groq, Hugging Face Inference Endpoints, LM Studio local server, etc.).
 
-- EuroEval docs & CLI usage: see the official repo and docs. :contentReference[oaicite:0]{index=0}
-- The `Benchmarker` supports `api_base` / `api_key`, so we can evaluate models served
-  behind OpenAI-compatible endpoints. :contentReference[oaicite:1]{index=1}
+- Works the same on macOS/Windows/Linux  
+- Build in the cloud (GitHub Actions → GHCR) and just pull locally  
+- Run interactively (prompts) or fully non-interactive (CLI flags)  
+- Optional dataset preloading into the image at build time  
+- Caches persist across runs via Docker volumes  
 
-## Quick start
+---
+
+## Table of contents
+
+- [Prerequisites](#prerequisites)  
+- [Quick start (TL;DR)](#quick-start-tldr)  
+- [Local build (optional)](#local-build-optional)  
+- [Run the container](#run-the-container)  
+  - [Interactive](#interactive)  
+  - [Non-interactive](#non-interactive)  
+  - [Persist caches between runs](#persist-caches-between-runs)  
+  - [Apple Silicon (M1/M2/M3) note](#apple-silicon-m1m2m3-note)  
+- [Choose an LLM endpoint](#choose-an-llm-endpoint)  
+  - [OpenAI](#openai)  
+  - [OpenRouter](#openrouter)  
+  - [Groq](#groq)  
+  - [LM Studio (local)](#lm-studio-local)  
+- [Remote build in GitHub Actions → GHCR](#remote-build-in-github-actions--ghcr)  
+  - [Pull the image (public vs private)](#pull-the-image-public-vs-private)  
+- [Build-time dataset preloading (optional)](#buildtime-dataset-preloading-optional)  
+- [Entrypoint, commands, and overrides](#entrypoint-commands-and-overrides)  
+- [Troubleshooting](#troubleshooting)  
+
+---
+
+## Prerequisites
+
+- **Docker Desktop** installed and running.  
+- (For private images) a **GitHub Personal Access Token** (PAT) with `read:packages`.  
+- An **OpenAI-compatible API** to call (see [Choose an LLM endpoint](#choose-an-llm-endpoint)).  
+
+Repo layout (relevant bits):
+
+docker/Dockerfile
+scripts/entrypoint.sh
+src/euroeval_runner/...
+pyproject.toml
+
+The contatiner exposes the CLI `euroeval-runner`. 
+
+---
+
+## Quick start (TL;DR)
+
+**Pull the image built by CI** (example: repo `$USER/euroeval`):
 
 ```bash
-# 1) Build (choose languages/tasks to pre-cache to control image size)
-docker build \
-  --build-arg EUROEVAL_LANGS="da,en" \
-  --build-arg EUROEVAL_TASKS="sentiment-classification,topic-classification" \
-  -t euroeval-runner:latest \
-  -f docker/Dockerfile .
+# If the package is private: log in to GHCR once
+echo <YOUR_GHCR_PAT> | docker login ghcr.io -u <your-github-username> --password-stdin
 
-# 2) Run (interactive) – mounts ./results to collect outputs
-docker run --rm -it \
-  --gpus all \
-  -e EUROEVAL_LANGS="da,en" \
-  -e EUROEVAL_TASKS="sentiment-classification" \
+# Apple Silicon? Pull the amd64 image (works via emulation)
+docker pull --platform=linux/amd64 ghcr.io/benj3542/euroeval:latest
+
+```
+
+**Run it** (interactive prompts; results saved to `./results/`):
+
+```bash
+mkdir -p results
+docker run --rm -it --platform=linux/amd64 \
   -v "$(pwd)/results:/workspace/results" \
-  euroeval-runner:latest
+  ghcr.io/benj3542/euroeval:latest
+````
