@@ -36,11 +36,10 @@ Run the **EuroEval** LLM benchmark in a reproducible Docker image against any **
 - An **OpenAI-compatible API** to call (see [Choose an LLM endpoint](#choose-an-llm-endpoint)).  
 
 Repo layout (relevant bits):
-
-docker/Dockerfile
-scripts/entrypoint.sh
-src/euroeval_runner/...
-pyproject.toml
+- docker/Dockerfile
+- scripts/entrypoint.sh
+- src/euroeval_runner/...
+- pyproject.toml
 
 The contatiner exposes the CLI `euroeval-runner`. 
 
@@ -231,7 +230,7 @@ Needs local installation of ollama! (see guide above)
 
 This repo includes a workflow `.github/workflows/docker-build.yml` that:
 - builds the Docker image on every push to `main` (tags `:latest`and `:sha-...`)
-- pushes to **GitHub Container Registry (GHCR)** at ghcr.io/<owner>/<repo>
+- pushes to **GitHub Container Registry (GHCR)** at `ghcr.io/<owner>/<repo>`
 
 **Trigger manual build** (with inputs):
 - GutHub -> Actions -> *Build and Publish Docker Image* -> Run workflow 
