@@ -179,6 +179,54 @@ docker run --rm --platform=linux/amd64 \
     --batch-size 1
 ```
 
+### OpenAI approach with llama2 
+
+**Install ollama2**
+First we have to install the ollama2 model through brew, or manually through their webadress: 
+```bash
+# Install Ollama (macOS): brew install ollama    # if not already installed
+# Start the server (foreground): 
+ollama serve                                      # or run via 'brew services start ollama'
+
+# Pull the model (once):
+ollama pull llama2
+
+# (Optional) keep models warm for 5 minutes:
+export OLLAMA_KEEP_ALIVE=5m
+```
+We can thereafter perform a line of sanity-checks to ensure the connection is running and stabile: 
+```bash
+# Models available (host):
+ollama list
+
+# From inside a container, confirm reachability:
+docker run --rm --platform=linux/amd64 \
+  --add-host=host.docker.internal:host-gateway \
+  curlimages/curl -sS http://host.docker.internal:11434/api/tags | head
+
+# If you plan to use the OpenAI-compatible mode, also check:
+docker run --rm --platform=linux/amd64 \
+  --add-host=host.docker.internal:host-gateway \
+  curlimages/curl -sS http://host.docker.internal:11434/v1/models | head
+```
+We treat Ollama like an OpenAI server. Use the OpenAI provider and any non-empty API key (Ollama won’t check it, but the client requires it) to run interactively:
+
+```bash
+mkdir -p results
+docker run --rm -it --platform=linux/amd64 \
+  -v "$(pwd)/results:/workspace/results" \ 
+  ghcr.io/benj3542/euroeval:latest \
+  euroeval-runner \
+    --api-base "http://host.docker.internal:11434/v1" \
+     --api-key "sk-local" \
+     --model "openai/llama2:latest" \
+     --language "da" \
+     --task "sentiment-classification" \
+     --batch-size 1
+```
+Needs local installation of ollama! (see guide above)
+
+
 ## Remote build in GitHub Actions -> GHCR
 
 This repo includes a workflow `.github/workflows/docker-build.yml` that:
