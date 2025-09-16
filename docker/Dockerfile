@@ -38,15 +38,15 @@ RUN pip install --no-cache-dir --upgrade pip && pip install --no-cache-dir .
 
 
 # ---- Build-time selection of languages/tasks to pre-cache ----
-ARG EUROEVAL_LANGS="da,en"
+ARG EUROEVAL_LANGS="da"
 ARG EUROEVAL_TASKS="sentiment-classification"
-ENV EUROEVAL_LANGS=${EUROEVAL_LANGS}
-ENV EUROEVAL_TASKS=${EUROEVAL_TASKS}
+ENV EUROEVAL_LANGS=$EUROEVAL_LANGS
+ENV EUROEVAL_TASKS=$EUROEVAL_TASKS
 
 # ---- Preload datasets to cache (kept in layer) ----
 RUN euroeval run \
-    --language "${EUROEVAL_LANGS}" \
-    --task "${EUROEVAL_TASKS}" \
+    --language "$EUROEVAL_LANGS" \
+    --task "$EUROEVAL_TASKS" \
     --download-only \
  || true   # don't fail the build if dummy model eval crashes
 
