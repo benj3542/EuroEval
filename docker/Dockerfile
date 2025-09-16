@@ -44,7 +44,20 @@ ENV EUROEVAL_LANGS=${EUROEVAL_LANGS}
 ENV EUROEVAL_TASKS=${EUROEVAL_TASKS}
 
 # ---- Preload datasets to cache (kept in layer) ----
-RUN python -m euroeval_runner.preload_datasets
+RUN python - <<EOF
+from euroeval import Benchmarker
+import os
+
+langs = os.environ.get("EUROEVAL_LANGS", "da,en").split(",")
+tasks = os.environ.get("EUROEVAL_TASKS", "sentiment-classification").split(",")
+
+b = Benchmarker(download_only=True)
+
+for t in tasks:
+    for lang in langs:
+        print(f"Downloading task={t}, lang={lang}")
+        b(task=t, language=lang)
+EOF
 
 # ---- Results dir ----
 RUN mkdir -p /workspace/results && chmod -R 777 /workspace/results
