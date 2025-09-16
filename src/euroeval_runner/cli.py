@@ -71,6 +71,7 @@ def run(
     evaluate_test_split: bool = typer.Option(False, help="Evaluate test split"),
     verbose: bool = typer.Option(False, help="Verbose logging"),
     no_probe: bool = typer.Option(False, help="Skip the connectivity probe to /models"),
+    preload_only: bool = typer.Option(False, help="Download datasets only, skip evaluation"),
 ):
     """Run EuroEval against ANY OpenAI-compatible endpoint (self-hosted or personal)."""
     print("[bold cyan]EuroEval Runner[/bold cyan]")
@@ -133,6 +134,13 @@ def run(
 
     if not Confirm.ask("Start evaluation now?"):
         print("[yellow]Aborted by user.[/yellow]")
+        raise typer.Exit(code=0)
+    
+    if preload_only:
+        # Trigger dataset caching but skip real evaluation
+        for t in (tasks or []):
+            bm.benchmark(model="noop", task=[t])
+        print("[green]Datasets preloaded into cache[/green]")
         raise typer.Exit(code=0)
 
     try:

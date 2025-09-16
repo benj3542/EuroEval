@@ -44,20 +44,12 @@ ENV EUROEVAL_LANGS=${EUROEVAL_LANGS}
 ENV EUROEVAL_TASKS=${EUROEVAL_TASKS}
 
 # ---- Preload datasets to cache (kept in layer) ----
-RUN python - <<EOF
-from euroeval import Benchmarker
-import os
+RUN euroeval run \
+    --language "${EUROEVAL_LANGS}" \
+    --task "${EUROEVAL_TASKS}" \
+    --preload-only \
+ || true   # don't fail the build if dummy model eval crashes
 
-langs = os.environ.get("EUROEVAL_LANGS", "da,en").split(",")
-tasks = os.environ.get("EUROEVAL_TASKS", "sentiment-classification").split(",")
-
-b = Benchmarker(download_only=True)
-
-for t in tasks:
-    for lang in langs:
-        print(f"Downloading task={t}, lang={lang}")
-        b(task=t, language=lang)
-EOF
 
 # ---- Results dir ----
 RUN mkdir -p /workspace/results && chmod -R 777 /workspace/results
