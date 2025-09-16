@@ -47,7 +47,7 @@ ENV EUROEVAL_TASKS=${EUROEVAL_TASKS}
 RUN euroeval run \
     --language "${EUROEVAL_LANGS}" \
     --task "${EUROEVAL_TASKS}" \
-    --preload-only \
+    --download-only \
  || true   # don't fail the build if dummy model eval crashes
 
 
