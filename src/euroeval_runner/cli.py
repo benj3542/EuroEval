@@ -132,27 +132,28 @@ def run(
         evaluate_test_split=evaluate_test_split,
     )
 
-    if not Confirm.ask("Start evaluation now?"):
-        print("[yellow]Aborted by user.[/yellow]")
-        raise typer.Exit(code=0)
-    
     if preload_only:
-        # Trigger dataset caching but skip real evaluation
+    # Trigger dataset caching but skip real evaluation
         for t in (tasks or []):
             bm.benchmark(model="noop", task=[t])
         print("[green]Datasets preloaded into cache[/green]")
         raise typer.Exit(code=0)
+    else:
+        # Only ask if running a real evaluation
+        if not Confirm.ask("Start evaluation now?"):
+            print("[yellow]Aborted by user.[/yellow]")
+            raise typer.Exit(code=0)
 
-    try:
-        bm.benchmark(
-            model=model,
-            task=tasks if tasks else None,
-            dataset=datasets if datasets else None,
-        )
-        print("[bold green]Done![/bold green] See results in:", os.getcwd())
-    except Exception as e:
-        print(f"[bold red]EuroEval failed:[/bold red] {e}")
-        raise typer.Exit(code=1)
+        try:
+            bm.benchmark(
+                model=model,
+                task=tasks if tasks else None,
+                dataset=datasets if datasets else None,
+            )
+            print("[bold green]Done![/bold green] See results in:", os.getcwd())
+        except Exception as e:
+            print(f"[bold red]EuroEval failed:[/bold red] {e}")
+            raise typer.Exit(code=1)
 
 if __name__ == "__main__":
     app()

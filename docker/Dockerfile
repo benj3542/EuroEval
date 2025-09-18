@@ -44,13 +44,14 @@ ENV EUROEVAL_LANGS=$EUROEVAL_LANGS
 ENV EUROEVAL_TASKS=$EUROEVAL_TASKS
 
 # ---- Preload datasets to cache (kept in layer) ----
-RUN euroeval run \
-    --language "$EUROEVAL_LANGS" \
-    --task "$EUROEVAL_TASKS" \
-    --download-only \
- || true   # don't fail the build if dummy model eval crashes
-
-
+RUN euroeval-runner \
+    --language "${EUROEVAL_LANGS}" \
+    --task "${EUROEVAL_TASKS}" \
+    --preload-only \
+    --api-base "http://dummy" \
+    --model "noop" \
+    --api-key "dummy"
+# || true   # don't fail the build if dummy model eval crashes
 # ---- Results dir ----
 RUN mkdir -p /workspace/results && chmod -R 777 /workspace/results
 
