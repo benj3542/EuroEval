@@ -20,14 +20,10 @@ def _split_csv(value: Optional[str]) -> Optional[List[str]]:
     return [v.strip() for v in value.split(",") if v.strip()]
 
 def _normalize_base_url(url: str) -> str:
-    """Ensure URL includes /v1 exactly once; accept raw host or host/v1."""
-    url = url.strip()
-    if not url:
-        return url
-    # remove trailing slashes
-    while url.endswith('/'):
-        url = url[:-1]
-    # append /v1 if missing
+    """Normalize base URL for OpenAI-like APIs, but skip Hugging Face."""
+    url = url.strip().rstrip("/")
+    if "api-inference.huggingface.co" in url:
+        return url  # Hugging Face doesn't use /v1
     if not url.endswith("/v1"):
         url = url + "/v1"
     return url
@@ -38,6 +34,8 @@ def _probe_models(api_base: str, api_key: Optional[str], timeout: float = 6.0) -
     Returns a list of model ids if available, else None.
     Never raises: converts errors to None.
     """
+    if "api-inference.huggingface.co" in api_base:
+        return None
     url = api_base.rstrip("/") + "/models"
     req = urllib.request.Request(url, method="GET")
     if api_key:

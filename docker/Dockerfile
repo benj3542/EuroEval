@@ -32,9 +32,11 @@ RUN mkdir -p "$EUROEVAL_CACHE_DIR" "$HF_DATASETS_CACHE" "$HF_HUB_CACHE" \
 COPY pyproject.toml README.md /workspace/
 COPY src /workspace/src
 COPY scripts /workspace/scripts
+COPY constraints.txt /workspace/constraints.txt
 
 # ---- Install project (pulls euroeval) with no cache ----
-RUN pip install --no-cache-dir --upgrade pip && pip install --no-cache-dir .
+RUN pip install --no-cache-dir --upgrade pip \
+ && pip install --no-cache-dir -c constraints.txt euroeval
 
 
 # ---- Build-time selection of languages/tasks to pre-cache ----
@@ -44,10 +46,11 @@ ENV EUROEVAL_LANGS=$EUROEVAL_LANGS
 ENV EUROEVAL_TASKS=$EUROEVAL_TASKS
 
 # ---- Preload datasets to cache (kept in layer) ----
-RUN euroeval-runner \
+RUN euroeval \
     --language "${EUROEVAL_LANGS}" \
     --task "${EUROEVAL_TASKS}" \
-    --preload-only \
+    --download-only \
+    --cache-dir "$EUROEVAL_CACHE_DIR" \
     --api-base "http://dummy" \
     --model "noop" \
     --api-key "dummy"
