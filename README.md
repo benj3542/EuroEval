@@ -83,6 +83,12 @@ docker run --rm --platform=linux/amd64 \
     --batch-size 1
 ```
 
+**run with euroeval CLI** (example: OpenAI): 
+```bash
+docker run -it --rm   -e HF_API_TOKEN=$HF_API_TOKEN   benj3542/euroeval:latest   euroeval     --language "da"     --task "sentiment-classification"     --api-base "https://api-inference.huggingface.co"     --model "distilbert-base-uncased-finetuned-sst-2-english"     --api-key "$HF_API_TOKEN"
+```
+
+
 ## Local build (optinal)
 I recommend remote builds (GitHub Actions) to avoid local disk/mirror issues, but you can build locally if you want.
 
